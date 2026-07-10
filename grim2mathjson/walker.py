@@ -167,6 +167,7 @@ STRUCTURAL_HEADS = {
     "BesselI": structural.translate_optional_derivative_order,
     "BesselK": structural.translate_optional_derivative_order,
     "LambertW": structural.translate_lambertw,
+    "DigammaFunction": structural.translate_digamma,
     # metadata/generator heads in *expression* position (top-level routing to
     # properties.json happens before the walker is invoked):
     "Zeros": structural.translate_generator_head,

@@ -59,14 +59,18 @@ def test_signature_quality():
 def test_known_shell_records():
     doc, _ = _build()
     decls = doc["declarations"]
-    jt = decls["JacobiTheta"]
-    assert jt["arity"] == [3, 4]
-    assert jt["signature"] == "(integer, complex, complex, integer?) -> complex"
-    assert jt["signatureSource"] == "verified"
-    assert jt["domainTable"]  # f96eac carries a domain table
+    zz = decls["RiemannZetaZero"]
+    assert zz["arity"] == 1
+    assert zz["signature"] == "(integer) -> complex"
+    assert zz["signatureSource"] == "verified"
+    assert zz["domainTable"]
     # EL-3 condition predicates must be boolean-typed (spike #3)
-    assert decls["Divides"]["signature"].endswith("-> boolean")
     assert decls["CongruentMod"]["signature"].endswith("-> boolean")
+    # heads CE has since gained (JacobiTheta, Divides, PolyGamma, ...) leave
+    # the shell table for the existing-audit section
+    assert "JacobiTheta" not in decls and "JacobiTheta" in doc["existing"]
+    assert "Divides" not in decls and "Divides" in doc["existing"]
+    assert "PolyGamma" not in decls and "PolyGamma" in doc["existing"]
     # synthesized collections
     assert decls["Primes"]["signature"] == "collection<integer>"
     assert "PP" in decls["Primes"].get("fungrimNames", [])

@@ -38,6 +38,7 @@ function scan(x: unknown): void {
 const EXPR_FIELDS = [
   'formula',
   'assumptions',
+  'assumptionAlternatives',
   'expr',
   'domain',
   'point',

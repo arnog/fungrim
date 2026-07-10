@@ -744,6 +744,29 @@ def translate_lambertw(expr, ctx, walk):
     return ["Apply", ["Derivative", ["Function", body, v], order], point]
 
 
+def translate_digamma(expr, ctx, walk):
+    """DigammaFunction(z [, m]): the optional trailing argument is the
+    polygamma order (Fungrim docs: DigammaFunction(z, m) "represents the
+    order m derivative of the digamma function").
+
+    - DigammaFunction(z) / DigammaFunction(z, 0) -> ["Digamma", z]
+    - DigammaFunction(z, m), m != 0 -> ["PolyGamma", m, z]  (CE PolyGamma is
+      order-FIRST; semantics verified numerically: PolyGamma(1, 1/4) =
+      pi^2 + 8*Catalan, PolyGamma(2, 1) = -2*Zeta(3))
+    """
+    args = expr.args()
+    z = args[0]
+    if len(args) == 1:
+        ctx.add_head("Digamma")
+        return ["Digamma", walk(z, ctx)]
+    m = args[1]
+    if m.is_integer() and m._integer == 0:
+        ctx.add_head("Digamma")
+        return ["Digamma", walk(z, ctx)]
+    ctx.add_head("PolyGamma")
+    return ["PolyGamma", walk(m, ctx), walk(z, ctx)]
+
+
 def translate_generator_head(expr, ctx, walk):
     """Metadata/generator heads in *expression* position (top-level entries
     are routed to properties.json before the walker runs; nested uses --

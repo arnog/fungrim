@@ -95,3 +95,21 @@ def test_directed_infinity_flag():
     out, ctx = _walk(pg.Mul(pg.ConstI, pg.Infinity))
     assert out == ["Multiply", "ImaginaryUnit", "PositiveInfinity"]
     assert ctx.directed_infinity is True
+
+
+def test_digamma_polygamma_order():
+    from pygrim import expr as pg
+    z = pg.Expr(symbol_name="z")
+    # 1-arg: plain digamma
+    out, ctx = _walk(pg.DigammaFunction(z))
+    assert out == ["Digamma", "z"]
+    # explicit order 0 folds to the 1-arg form
+    out, _ = _walk(pg.DigammaFunction(z, pg.Expr(0)))
+    assert out == ["Digamma", "z"]
+    # order m != 0 -> CE PolyGamma, order FIRST
+    out, ctx = _walk(pg.DigammaFunction(z, pg.Expr(1)))
+    assert out == ["PolyGamma", 1, "z"]
+    assert "PolyGamma" in ctx.heads
+    m = pg.Expr(symbol_name="m")
+    out, _ = _walk(pg.DigammaFunction(z, m))
+    assert out == ["PolyGamma", "m", "z"]
