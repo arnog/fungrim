@@ -189,7 +189,7 @@ SYMBOL_MAP: dict = {
     "BesselK": "BesselK",
     "AiryAi": "AiryAi",           # CE 1-arg; Fungrim 2-arg (z, r) = r-th derivative
     "AiryBi": "AiryBi",           #   -> derivative encoding (structural)
-    "LambertW": "LambertW",       # CE 1-arg (principal); branches stay n-ary, see note below
+    "LambertW": "LambertW",       # CE 2-arg (z, k), branch index last; see note below
 
     # -- calculus (structural reshaping in structural.py; CE target names)
     "Sum": "Sum",
@@ -327,13 +327,13 @@ SHELL_HEADS: frozenset = frozenset([
     "Rings", "Fields",
 ]) | frozenset(VERIFIED_SHELLS)
 
-# NOTE on LambertW: CE defines LambertW as 1-arg (principal branch). The
-# corpus maps LambertW(z) and LambertW(z, 0) to the 1-arg form; non-principal
-# branches stay as 2-arg ["LambertW", z, k] which CE flags as
-# unexpected-argument until the validation harness re-declares LambertW in a
-# child scope with `(complex, integer?) -> complex` (lexical shadowing,
-# verified to work). LambertW(z, k, r) = r-th derivative -> derivative
-# encoding (structural), like BesselJ/AiryAi derivative orders.
+# NOTE on LambertW: CE defines LambertW natively as 2-arg
+# `(number, number?) -> number` with the branch index LAST (SymPy/Fungrim
+# convention), as of 2026-07-09. The corpus maps LambertW(z) and
+# LambertW(z, 0) to the 1-arg form ["LambertW", z] (principal branch) and
+# non-principal branches to 2-arg ["LambertW", z, k]; both box directly with
+# no harness re-declaration needed. LambertW(z, k, r) = r-th derivative ->
+# derivative encoding (structural), like BesselJ/AiryAi derivative orders.
 
 # Heads whose entries are routed to properties.json when they are the
 # top-level operator shape (spike #12 fixes the micro-format). In expression

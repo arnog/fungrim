@@ -644,12 +644,6 @@ def build(result, entries, ce_known):
         rec = {}
         if name in reverse:
             rec["fungrimNames"] = sorted(reverse[name])
-        if name == "LambertW":
-            rec["note"] = (
-                "CE LambertW is 1-arg (principal branch); the corpus emits "
-                "2-arg [LambertW, z, k] for non-principal branches -- "
-                "re-declare '(complex, integer?) -> complex' in a child "
-                "scope before boxing (mapping.py note)")
         if name in ("Erf", "Erfc"):
             rec["note"] = ("CE numeric kernel is ~1e-7 accurate "
                            "(SPIKE-DECISIONS.md #15); tolerance >= 1e-6 "

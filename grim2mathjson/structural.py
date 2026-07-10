@@ -745,12 +745,12 @@ def translate_optional_derivative_order(expr, ctx, walk):
 
 
 def translate_lambertw(expr, ctx, walk):
-    """LambertW(z [, k [, r]]). CE LambertW is 1-arg (principal branch).
+    """LambertW(z [, k [, r]]). CE LambertW is natively 2-arg (z, k) with the
+    branch index last (SymPy/Fungrim convention).
 
     - LambertW(z) / LambertW(z, 0) -> ["LambertW", z]
-    - LambertW(z, k), k != 0       -> ["LambertW", z, k]  (needs the harness
-      to re-declare LambertW `(complex, integer?) -> complex` in a child
-      scope; CE flags the extra argument otherwise -- see mapping.py note)
+    - LambertW(z, k), k != 0       -> ["LambertW", z, k]  (boxes directly; no
+      harness re-declaration needed -- see mapping.py note)
     - LambertW(z, k, r) (r-th derivative) -> spike #2 derivative encoding
       around the branch form.
     """

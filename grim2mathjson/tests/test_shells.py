@@ -82,6 +82,6 @@ def test_existing_audit_section():
     # name-collision mappings audited (spike #15)
     assert "Zeta" in existing and "RiemannZeta" in existing["Zeta"]["fungrimNames"]
     assert "Beta" in existing and "BetaFunction" in existing["Beta"]["fungrimNames"]
-    assert "note" in existing["LambertW"]
+    assert "note" in existing["Erf"]
     # nothing both declared and CE-known
     assert not set(doc["declarations"]) & set(existing)
