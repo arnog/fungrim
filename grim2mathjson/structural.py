@@ -517,10 +517,9 @@ def translate_decimal(expr, ctx, walk):
     return {"num": expr.args()[0]._text}
 
 
-def translate_set(expr, ctx, walk):
-    """Set enumeration passes through. The comprehension form
-    Set(body, For/ForElement(...) [, cond]) translates to its real CE
-    encoding — a filtered/mapped collection:
+def _comprehension(body, gen, cond, ctx, walk):
+    """Translate a comprehension (body, For/ForElement generator, optional
+    condition) into its real CE encoding — a filtered/mapped collection:
 
         {x : x in S}             -> S
         {x : x in S, P(x)}       -> ["Filter", S, ["Function", P, x]]
@@ -529,29 +528,39 @@ def translate_set(expr, ctx, walk):
                                      ["Function", P, x]],
                                      ["Function", f, x]]
 
+    Shared by translate_set (set-builder values) and translate_optimum
+    (Min/Max/Supremum/Infimum image sets). Fidelity note: Filter/Map
+    preserve the source collection's character rather than re-imposing set
+    semantics (no dedup of f(x) collisions); membership, emptiness and
+    extrema agree with the set-builder reading, which is what the corpus
+    exercises."""
+    # ["Element", var, S] or ["Element", var, S, cond] (EL-3)
+    elt = _indexing_set(gen, cond, ctx, walk)
+    var, source = elt[1], elt[2]
+    if len(elt) > 3:
+        ctx.add_head("Filter")
+        source = ["Filter", source, ["Function", elt[3], var]]
+    body_tr = walk(body, ctx)
+    if body_tr == var:
+        return source
+    ctx.add_head("Map")
+    return ["Map", source, ["Function", body_tr, var]]
+
+
+def translate_set(expr, ctx, walk):
+    """Set enumeration passes through; the comprehension form
+    Set(body, For/ForElement(...) [, cond]) translates via _comprehension.
+
     The previous encoding, a literal ["Set", body, indexing-set] (spike
     #12), boxed fine but CE *reads* it as a 2-element literal set —
     Count/Element gave wrong scalars (Stage-2 audit, gcd/4099d2 graded
-    False from Count). Fidelity note: Filter/Map preserve the source
-    collection's character rather than re-imposing set semantics
-    (no dedup of f(x) collisions); membership and emptiness agree with
-    the set-builder reading, which is what the corpus exercises."""
+    False from Count)."""
     args = expr.args()
     if len(args) >= 2 and _head_name(args[1]) in ("For", "ForElement"):
         cond = None
         if len(args) > 2:
             cond = args[2] if len(args) == 3 else _pg().And(*args[2:])
-        # ["Element", var, S] or ["Element", var, S, cond] (EL-3)
-        elt = _indexing_set(args[1], cond, ctx, walk)
-        var, source = elt[1], elt[2]
-        if len(elt) > 3:
-            ctx.add_head("Filter")
-            source = ["Filter", source, ["Function", elt[3], var]]
-        body = walk(args[0], ctx)
-        if body == var:
-            return source
-        ctx.add_head("Map")
-        return ["Map", source, ["Function", body, var]]
+        return _comprehension(args[0], args[1], cond, ctx, walk)
     ctx.add_head("Set")
     return ["Set"] + [walk(a, ctx) for a in args]
 
@@ -618,9 +627,12 @@ def translate_optimum(expr, ctx, walk):
 
     Value-extrema map onto CE Min/Max/Supremum/Infimum ("(value*) ->
     number", collections accepted -- M1 batch verified). Generator forms
-    become the image set via the set-builder encoding:
+    become the image set via _comprehension:
         Minimum(f, ForElement(x, S) [, cond])
-          -> ["Min", ["Set", f, ["Element", "x", S [, cond]]]]
+          -> ["Min", ["Map", S', ["Function", f, "x"]]]
+    (S' = S or its Filter; previously a literal ["Set", f, indexing] that
+    CE read as a 2-element enumeration — same fiction as translate_set's,
+    fixed together; CE keeps extrema over unenumerable collections inert).
     Arg-extrema have no CE equivalent: verbatim shells with a
     Function-literal first argument (binding kept):
         ArgMinUnique(f, ForElement(x, S)) ->
@@ -642,8 +654,7 @@ def translate_optimum(expr, ctx, walk):
     if name in _OPTIMUM_TARGET:
         target = _OPTIMUM_TARGET[name]
         ctx.add_head(target)
-        indexing = _indexing_set(gen, cond, ctx, walk)
-        return [target, ["Set", walk(f, ctx), indexing]]
+        return [target, _comprehension(f, gen, cond, ctx, walk)]
     # ArgMin / ArgMax / ArgMinUnique / ArgMaxUnique
     gh = _head_name(gen)
     if gh != "ForElement" or not _is_plain_symbol(gen.args()[0]):
