@@ -518,17 +518,41 @@ def translate_decimal(expr, ctx, walk):
 
 
 def translate_set(expr, ctx, walk):
-    """Set enumeration passes through; the comprehension form
-    Set(body, For/ForElement(...) [, cond]) -> ["Set", body, indexing-set]
-    (set-builder encoding box-verified in spike #12)."""
+    """Set enumeration passes through. The comprehension form
+    Set(body, For/ForElement(...) [, cond]) translates to its real CE
+    encoding — a filtered/mapped collection:
+
+        {x : x in S}             -> S
+        {x : x in S, P(x)}       -> ["Filter", S, ["Function", P, x]]
+        {f(x) : x in S}          -> ["Map", S, ["Function", f, x]]
+        {f(x) : x in S, P(x)}    -> ["Map", ["Filter", S,
+                                     ["Function", P, x]],
+                                     ["Function", f, x]]
+
+    The previous encoding, a literal ["Set", body, indexing-set] (spike
+    #12), boxed fine but CE *reads* it as a 2-element literal set —
+    Count/Element gave wrong scalars (Stage-2 audit, gcd/4099d2 graded
+    False from Count). Fidelity note: Filter/Map preserve the source
+    collection's character rather than re-imposing set semantics
+    (no dedup of f(x) collisions); membership and emptiness agree with
+    the set-builder reading, which is what the corpus exercises."""
     args = expr.args()
-    ctx.add_head("Set")
     if len(args) >= 2 and _head_name(args[1]) in ("For", "ForElement"):
         cond = None
         if len(args) > 2:
             cond = args[2] if len(args) == 3 else _pg().And(*args[2:])
-        indexing = _indexing_set(args[1], cond, ctx, walk)
-        return ["Set", walk(args[0], ctx), indexing]
+        # ["Element", var, S] or ["Element", var, S, cond] (EL-3)
+        elt = _indexing_set(args[1], cond, ctx, walk)
+        var, source = elt[1], elt[2]
+        if len(elt) > 3:
+            ctx.add_head("Filter")
+            source = ["Filter", source, ["Function", elt[3], var]]
+        body = walk(args[0], ctx)
+        if body == var:
+            return source
+        ctx.add_head("Map")
+        return ["Map", source, ["Function", body, var]]
+    ctx.add_head("Set")
     return ["Set"] + [walk(a, ctx) for a in args]
 
 

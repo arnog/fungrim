@@ -337,6 +337,13 @@ def _domain_level(d):
                     a = a[1]
                 levels.append(_term_level(a))
             return max(levels)
+        if head in ("Filter", "Map"):
+            # Set-builder comprehensions translate to Filter/Map collections
+            # (structural.translate_set); membership in them is not
+            # dischargeable by the assumptions machinery. (The previous
+            # literal-Set encoding under-guarded these: it graded the
+            # *operands* of a fictitious 2-element set.)
+            return UNDISCHARGEABLE
         raise GuardClassifyError(f"unrecognized domain head: {head}")
     raise GuardClassifyError(f"unclassifiable domain: {d!r}")
 

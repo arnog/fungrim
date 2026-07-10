@@ -59,6 +59,7 @@ ExponentialE
 Factorial
 Factorial2
 Fibonacci
+Filter
 Floor
 ForAll
 Function
@@ -92,6 +93,7 @@ Limits
 List
 Ln
 LogIntegral
+Map
 Matrix
 Max
 Min

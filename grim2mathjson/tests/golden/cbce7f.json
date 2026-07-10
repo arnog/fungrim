@@ -18,23 +18,23 @@
   "path": null,
   "condition": null,
   "value": [
-   "Set",
+   "Map",
+   "Integers",
    [
-    "Add",
+    "Function",
     [
-     "Arctan",
-     "z"
+     "Add",
+     [
+      "Arctan",
+      "z"
+     ],
+     [
+      "Multiply",
+      "Pi",
+      "n"
+     ]
     ],
-    [
-     "Multiply",
-     "Pi",
-     "n"
-    ]
-   ],
-   [
-    "Element",
-    "n",
-    "Integers"
+    "n"
    ]
   ],
   "assumptions": [
