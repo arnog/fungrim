@@ -19,7 +19,6 @@
   "condition": null,
   "value": [
    "Map",
-   "Integers",
    [
     "Function",
     [
@@ -35,7 +34,8 @@
      ]
     ],
     "n"
-   ]
+   ],
+   "Integers"
   ],
   "assumptions": [
    "Element",

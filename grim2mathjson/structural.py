@@ -523,10 +523,13 @@ def _comprehension(body, gen, cond, ctx, walk):
 
         {x : x in S}             -> S
         {x : x in S, P(x)}       -> ["Filter", S, ["Function", P, x]]
-        {f(x) : x in S}          -> ["Map", S, ["Function", f, x]]
-        {f(x) : x in S, P(x)}    -> ["Map", ["Filter", S,
-                                     ["Function", P, x]],
-                                     ["Function", f, x]]
+        {f(x) : x in S}          -> ["Map", ["Function", f, x], S]
+        {f(x) : x in S, P(x)}    -> ["Map", ["Function", f, x],
+                                     ["Filter", S,
+                                      ["Function", P, x]]]
+
+    CE's Map is callback-FIRST (`Map(f, xs)`, the 2026-08-14 argument-order
+    repair); Filter stays collection-first.
 
     Shared by translate_set (set-builder values) and translate_optimum
     (Min/Max/Supremum/Infimum image sets). Fidelity note: Filter/Map
@@ -544,7 +547,7 @@ def _comprehension(body, gen, cond, ctx, walk):
     if body_tr == var:
         return source
     ctx.add_head("Map")
-    return ["Map", source, ["Function", body_tr, var]]
+    return ["Map", ["Function", body_tr, var], source]
 
 
 def translate_set(expr, ctx, walk):
@@ -629,7 +632,7 @@ def translate_optimum(expr, ctx, walk):
     number", collections accepted -- M1 batch verified). Generator forms
     become the image set via _comprehension:
         Minimum(f, ForElement(x, S) [, cond])
-          -> ["Min", ["Map", S', ["Function", f, "x"]]]
+          -> ["Min", ["Map", ["Function", f, "x"], S']]
     (S' = S or its Filter; previously a literal ["Set", f, indexing] that
     CE read as a 2-element enumeration — same fiction as translate_set's,
     fixed together; CE keeps extrema over unenumerable collections inert).
