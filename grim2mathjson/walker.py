@@ -130,6 +130,7 @@ STRUCTURAL_HEADS = {
     "AngleBrackets": structural.strip_decorations,
     "Pos": structural.strip_decorations,
     "Neg": structural.translate_neg,
+    "Pow": structural.translate_pow,
     "Inv": structural.translate_inv,
     "Subscript": structural.translate_subscript,
     "OpenInterval": structural.translate_interval,

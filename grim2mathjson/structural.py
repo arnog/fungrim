@@ -853,3 +853,32 @@ def translate_chain(expr, ctx, walk):
     pairwise-And expansion -- handled by the plain SYMBOL_MAP path in the
     walker; this stub documents the decision."""
     raise AssertionError("chains pass through the SYMBOL_MAP path")
+
+
+# Heads and atoms that denote a SET in pygrim. `Pow` over one of them is the
+# Cartesian power (`Pow(ZZ, 2)` is the lattice of integer pairs, `Pow(Range(1,
+# N), n)` the n-tuples drawn from 1..N), not an elementwise power.
+_SET_VALUED_ATOMS = {"ZZ", "QQ", "RR", "CC", "PP", "AlgebraicNumbers", "HH"}
+_SET_VALUED_HEADS = {
+    "ZZGreaterEqual", "ZZLessEqual", "ZZBetween", "Range", "Set",
+    "OpenInterval", "ClosedInterval", "OpenClosedInterval",
+    "ClosedOpenInterval", "Union", "Intersection", "SetMinus",
+    "CartesianProduct", "CartesianPower", "PowerSet",
+}
+
+
+def translate_pow(expr, ctx, walk):
+    """Pow(x, y) -> ["Power", x, y], except over a set-valued base:
+    Pow(S, n) -> ["CartesianPower", S, n] (a shell head; the Compute Engine
+    reads ["Power", S, n] as an ELEMENTWISE power, which silently changes the
+    meaning of entries such as gcd 4099d2, `Element(T, Pow(Range(1, N), n))`).
+    """
+    base, expo = expr.args()
+    is_set = (base.is_atom() and base.is_symbol()
+              and base._symbol in _SET_VALUED_ATOMS) or (
+              _head_name(base) in _SET_VALUED_HEADS)
+    if is_set:
+        ctx.add_shell("CartesianPower")
+        return ["CartesianPower", walk(base, ctx), walk(expo, ctx)]
+    ctx.add_head("Power")
+    return ["Power", walk(base, ctx), walk(expo, ctx)]
