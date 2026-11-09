@@ -812,13 +812,19 @@ def translate_generator_head(expr, ctx, walk):
     the verbatim head with a Function-literal first argument so the binding
     survives):
 
-        Zeros(f, ForElement(z, S) [, cond]) -> ["Zeros", ["Function", f, "z"],
+        Zeros(f, ForElement(z, S) [, cond]) -> ["ZerosOf", ["Function", f, "z"],
                                                 S [, cond]]
         Residue(f, For(z, p))               -> ["Residue", Fn, p]
         AnalyticContinuation(f, For(z,a,b)) -> [head, Fn, a, b]
         Op(f, z, S) positional              -> [head, Fn, S]
+
+    The emitted head is the Fungrim name, or its entry in
+    mapping.SYMBOL_MAP when it has one (Zeros -> ZerosOf, because CE's Zeros
+    makes an array of zeros).
     """
+    from . import mapping
     name = _head_name(expr)
+    name = mapping.SYMBOL_MAP.get(name, name)
     args = expr.args()
     ctx.add_shell(name)
     f = args[0]

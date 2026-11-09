@@ -197,6 +197,13 @@ SYMBOL_MAP: dict = {
     "Integral": "Integrate",
     # ComplexDerivative & friends -> Apply/Derivative (structural, spike #2)
     # *Limit variants -> Limit (+ flavor annotation) (structural, spike #13)
+
+    # -- generator heads whose Fungrim name is a different CE operator.
+    # CE's Zeros(d1, d2, ...) makes an array of zeros, so Fungrim's
+    # Zeros(f, S), the set of zeros of the function f in S, is emitted as
+    # ZerosOf, which is a shell. structural.translate_generator_head reads
+    # this map. The top-level property label stays "Zeros" (METADATA_HEADS).
+    "Zeros": "ZerosOf",
 }
 
 # Variable RENAMES: Fungrim variable names that collide with *semantically
@@ -309,8 +316,10 @@ SHELL_HEADS: frozenset = frozenset([
     "IndefiniteIntegralEqual",
     "IsHolomorphic", "IsMeromorphic",   # also METADATA_HEADS at top level
     # generator heads kept verbatim in expression position (METADATA_HEADS
-    # routing applies only at top level; see structural.translate_generator_head)
-    "Zeros", "Poles", "BranchPoints", "BranchCuts", "EssentialSingularities",
+    # routing applies only at top level; see structural.translate_generator_head).
+    # These are the emitted names: Fungrim's Zeros is emitted as ZerosOf
+    # (SYMBOL_MAP).
+    "ZerosOf", "Poles", "BranchPoints", "BranchCuts", "EssentialSingularities",
     "Residue", "AnalyticContinuation", "ComplexZeroMultiplicity",
     "Solutions", "UniqueSolution", "UniqueZero",
     "ArgMin", "ArgMax", "ArgMinUnique", "ArgMaxUnique",

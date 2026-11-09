@@ -468,7 +468,8 @@ def translated_domain_table(table):
 CURATED_SIGNATURES = {
     # generator/metadata heads in expression position:
     #   [head, ["Function", body, var], extra...]
-    "Zeros": "(function, any*) -> set<complex>",
+    # Fungrim's Zeros, emitted as ZerosOf (mapping.SYMBOL_MAP).
+    "ZerosOf": "(function, any*) -> set<complex>",
     "Poles": "(function, any*) -> set<complex>",
     "BranchPoints": "(function, any*) -> set<complex>",
     "BranchCuts": "(function, any*) -> collection",
